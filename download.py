@@ -47,7 +47,10 @@ def get_media_types(video_url):
 
 def download(stream_base_url, media_types, video_info, output_directory):
     output_filename = f"{output_directory}/{video_info['program_title']}"
-    os.makedirs(output_filename)
+    try:
+        os.makedirs(output_filename)
+    except FileExistsError:
+        pass
     output_filename += f"/{video_info['program_title']} {video_info['episode_title']}.mkv"
 
     ffmpeg_command = 'ffmpeg'
@@ -93,7 +96,10 @@ def download_svt_video(url, link_text, output_directory):
 
 if __name__ == '__main__':
     output_directory = "F:/svt"
-    os.makedirs(output_directory)
+    try:
+        os.makedirs(output_directory)
+    except FileExistsError:
+        pass
 
     global logger
     logger = logging.getLogger("my log")
@@ -121,8 +127,8 @@ if __name__ == '__main__':
 
     for video in videos:
         try:
-            download_svt_video(url=video['url'], link_text=video['link_text'])
+            download_svt_video(url=video['url'], link_text=video['link_text'], output_directory=output_directory)
         except VideoNotFound:
             logger.error(f"Video not found")
-        except:
-            logger.error(f"Unexpected error {sys.exc_info()[0]}")
+        #except:
+        #    logger.error(f"Unexpected error {sys.exc_info()[0]}")
