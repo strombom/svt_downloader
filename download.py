@@ -1,8 +1,9 @@
-import sys
 
-import ffmpeg
-import requests
+import os
+import sys
 import logging
+import requests
+import subprocess
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 
@@ -44,45 +45,18 @@ def get_media_types(video_url):
     return media_types
 
 
-def get_subtitles(subtitle_url):
-    subtitles = requests.get(subtitle_url).text
-    print(subtitles)
-    quit()
-    pass
+def download(stream_base_url, media_types, video_info, output_directory):
+    output_filename = f"{output_directory}/{video_info['program_title']}"
+    os.makedirs(output_filename)
+    output_filename += f"/{video_info['program_title']} {video_info['episode_title']}.mkv"
 
-
-def download(stream_base_url, media_types, video_info):
     ffmpeg_command = 'ffmpeg'
     ffmpeg_command += f' -i "{stream_base_url}{media_types["video"]}"'
     ffmpeg_command += f' -i "{stream_base_url}{media_types["audio"]}"'
     ffmpeg_command += f' -i "{stream_base_url}{media_types["subtitle"]}"'
-    ffmpeg_command += ' -vcodec copy -acodec copy "Rapport - 12 mars 19.30.mkv"'
-    video_input = ffmpeg.input(f'{stream_base_url}{media_types["video"]}', i='abc')
-    audio_input = ffmpeg.input(f'{stream_base_url}{media_types["audio"]}')
-    subtitle_input = ffmpeg.input(f'{stream_base_url}{media_types["subtitle"]}')
+    ffmpeg_command += f' -vcodec copy -acodec copy "{output_filename}"'
 
-    #subtitles_filepath = get_subtitles(f'{stream_base_url}{media_types["subtitle"]}')
-
-    #print(subtitles)
-
-    #   subtitles = requests.get(f'{stream_base_url}text-0.vtt').text
-    #print(f'{stream_base_url}{media_types["subtitle"]}')
-
-    #subtitles = requests.get('https://svt-vod-2j.akamaized.net/d0/world/20210312/6fc0e77a-e3f9-4446-8b2e-edf47a4d1929/text/text-0.vtt').text
-    #print(subtitles)
-    #quit()
-    #    .filter('subtitles', 'https://svt-vod-2j.akamaized.net/d0/world/20210312/6fc0e77a-e3f9-4446-8b2e-edf47a4d1929/text/text-0.vtt')
-
-    output_filename = f"F:/svt/{video_info['program_title']}/{video_info['program_title']} {video_info['episode_title']}.mkv"
-
-    (
-        ffmpeg
-        .concat(video_input, audio_input, v=1, a=1)
-        #.filter('subtitles', f'{stream_base_url}{media_types["subtitle"]}')
-        .output(output_filename)
-        .overwrite_output()
-        .run()
-    )
+    subprocess.run(ffmpeg_command, shell=True, check=True)
     logger.info(f'Done {output_filename}')
 
 
@@ -90,7 +64,7 @@ class VideoNotFound(Exception):
     pass
 
 
-def download_svt_video(url, link_text):
+def download_svt_video(url, link_text, output_directory):
     logger.info(f"Download {url} {link_text}")
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
 
@@ -111,13 +85,15 @@ def download_svt_video(url, link_text):
                 last_pos = video_url.rfind('/')
                 stream_base_url = video_url[:last_pos+1]
                 media_types = get_media_types(video_url)
-                download(stream_base_url, media_types, video_info)
+                download(stream_base_url, media_types, video_info, output_directory)
                 return
 
     raise VideoNotFound
 
 
 if __name__ == '__main__':
+    output_directory = "F:/svt"
+
     global logger
     logger = logging.getLogger("my log")
     root = logging.getLogger()
@@ -129,7 +105,7 @@ if __name__ == '__main__':
     stream_handler.setLevel(logging.INFO)
     logger.addHandler(stream_handler)
 
-    file_handler = logging.FileHandler(filename="F:/svt/log.txt")
+    file_handler = logging.FileHandler(filename=f"{output_directory}/log.txt")
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
     logger.addHandler(file_handler)
@@ -147,5 +123,5 @@ if __name__ == '__main__':
             download_svt_video(url=video['url'], link_text=video['link_text'])
         except VideoNotFound:
             logger.error(f"Video not found")
-        #except:
-        #    logger.error(f"Unexpected error {sys.exc_info()[0]}")
+        except:
+            logger.error(f"Unexpected error {sys.exc_info()[0]}")
