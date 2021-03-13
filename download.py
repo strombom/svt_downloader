@@ -93,6 +93,7 @@ def download_svt_video(url, link_text, output_directory):
 
 if __name__ == '__main__':
     output_directory = "F:/svt"
+    os.makedirs(output_directory)
 
     global logger
     logger = logging.getLogger("my log")
