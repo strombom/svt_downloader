@@ -7,27 +7,6 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 
 
-def download(stream_base_url, media_types, video_info):
-    ffmpeg_command = 'ffmpeg'
-    ffmpeg_command += f' -i "{stream_base_url}{media_types["video"]}"'
-    ffmpeg_command += f' -i "{stream_base_url}{media_types["audio"]}"'
-    ffmpeg_command += f' -i "{stream_base_url}{media_types["subtitle"]}"'
-    ffmpeg_command += ' -vcodec copy -acodec copy "Rapport - 12 mars 19.30.mkv"'
-    video_input = ffmpeg.input(f'{stream_base_url}{media_types["video"]}')
-    audio_input = ffmpeg.input(f'{stream_base_url}/{media_types["audio"]}')
-
-    output_filename = f"F:/svt/{video_info['program_title']}/{video_info['program_title']} {video_info['episode_title']}.mkv"
-
-    (
-        ffmpeg
-        .concat(video_input, audio_input, v=1, a=1)
-        .output(output_filename)
-        .overwrite_output()
-        .run()
-    )
-    logger.info(f'Done {output_filename}')
-
-
 def get_media_types(video_url):
     media_types = {'video': None,
                    'audio': None,
@@ -63,6 +42,48 @@ def get_media_types(video_url):
         media_types['video'] = videos[-1]
 
     return media_types
+
+
+def get_subtitles(subtitle_url):
+    subtitles = requests.get(subtitle_url).text
+    print(subtitles)
+    quit()
+    pass
+
+
+def download(stream_base_url, media_types, video_info):
+    ffmpeg_command = 'ffmpeg'
+    ffmpeg_command += f' -i "{stream_base_url}{media_types["video"]}"'
+    ffmpeg_command += f' -i "{stream_base_url}{media_types["audio"]}"'
+    ffmpeg_command += f' -i "{stream_base_url}{media_types["subtitle"]}"'
+    ffmpeg_command += ' -vcodec copy -acodec copy "Rapport - 12 mars 19.30.mkv"'
+    video_input = ffmpeg.input(f'{stream_base_url}{media_types["video"]}', i='abc')
+    audio_input = ffmpeg.input(f'{stream_base_url}{media_types["audio"]}')
+    subtitle_input = ffmpeg.input(f'{stream_base_url}{media_types["subtitle"]}')
+
+    #subtitles_filepath = get_subtitles(f'{stream_base_url}{media_types["subtitle"]}')
+
+    #print(subtitles)
+
+    #   subtitles = requests.get(f'{stream_base_url}text-0.vtt').text
+    #print(f'{stream_base_url}{media_types["subtitle"]}')
+
+    #subtitles = requests.get('https://svt-vod-2j.akamaized.net/d0/world/20210312/6fc0e77a-e3f9-4446-8b2e-edf47a4d1929/text/text-0.vtt').text
+    #print(subtitles)
+    #quit()
+    #    .filter('subtitles', 'https://svt-vod-2j.akamaized.net/d0/world/20210312/6fc0e77a-e3f9-4446-8b2e-edf47a4d1929/text/text-0.vtt')
+
+    output_filename = f"F:/svt/{video_info['program_title']}/{video_info['program_title']} {video_info['episode_title']}.mkv"
+
+    (
+        ffmpeg
+        .concat(video_input, audio_input, v=1, a=1)
+        #.filter('subtitles', f'{stream_base_url}{media_types["subtitle"]}')
+        .output(output_filename)
+        .overwrite_output()
+        .run()
+    )
+    logger.info(f'Done {output_filename}')
 
 
 class VideoNotFound(Exception):
@@ -126,5 +147,5 @@ if __name__ == '__main__':
             download_svt_video(url=video['url'], link_text=video['link_text'])
         except VideoNotFound:
             logger.error(f"Video not found")
-        except:
-            logger.error(f"Unexpected error {sys.exc_info()[0]}")
+        #except:
+        #    logger.error(f"Unexpected error {sys.exc_info()[0]}")
