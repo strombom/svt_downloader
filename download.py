@@ -1,10 +1,10 @@
 
 import os
-import sys
 import logging
 import requests
 import subprocess
 from bs4 import BeautifulSoup
+# from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
 
@@ -53,7 +53,7 @@ def download(stream_base_url, media_types, video_info, output_directory):
         pass
     output_filename += f"/{video_info['program_title']} {video_info['episode_title']}.mkv"
 
-    ffmpeg_command = 'ffmpeg'
+    ffmpeg_command = 'ffmpeg -y'
     ffmpeg_command += f' -i "{stream_base_url}{media_types["video"]}"'
     ffmpeg_command += f' -i "{stream_base_url}{media_types["audio"]}"'
     ffmpeg_command += f' -i "{stream_base_url}{media_types["subtitle"]}"'
@@ -124,6 +124,8 @@ if __name__ == '__main__':
 
     videos = [{'url': 'https://svtplay.se/aktuellt', 'link_text': 'Igår 21:00'},
               {'url': 'https://svtplay.se/rapport', 'link_text': 'Igår 19:30'}]
+
+    # weekday = ('Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön')[(datetime.datetime.now().weekday() - 1) % 6]
 
     for video in videos:
         try:
