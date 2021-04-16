@@ -76,7 +76,7 @@ def download_svt_video(url, link_text, output_directory):
         raise VideoNotFound
 
     for link in soup.findAll('a', href=True, text=link_text):
-        modal_id = parse_qs(urlparse(link['href']).query)['modalId'][0]
+        modal_id = parse_qs(urlparse(link['href']).query)['id'][0]
         r = requests.get(f'https://api.svt.se/video/{modal_id}').json()
 
         video_info = {'program_title': r['programTitle'],
