@@ -71,12 +71,12 @@ def download_svt_video(url, link_text, output_directory):
     logger.info(f"Download {url} {link_text}")
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
 
-    links = soup.findAll('a', href=True, text=link_text)
-    if not links:
-        raise VideoNotFound
+    for link in soup.findAll('a', {'aria-label': link_text}):
+        link_href = parse_qs(urlparse(link['href']).query)
+        if 'id' not in link_href:
+            continue
 
-    for link in soup.findAll('a', href=True, text=link_text):
-        modal_id = parse_qs(urlparse(link['href']).query)['id'][0]
+        modal_id = link_href['id'][0]
         r = requests.get(f'https://api.svt.se/video/{modal_id}').json()
 
         video_info = {'program_title': r['programTitle'],
@@ -122,8 +122,10 @@ if __name__ == '__main__':
 
     logger.info('Start')
 
-    videos = [{'url': 'https://svtplay.se/aktuellt', 'link_text': 'Igår 21:00'},
-              {'url': 'https://svtplay.se/rapport', 'link_text': 'Igår 19:30'}]
+    videos = [
+        {'url': 'https://svtplay.se/rapport', 'link_text': 'Spela Igår 19:30'},
+        {'url': 'https://svtplay.se/aktuellt', 'link_text': 'Spela Igår 21:00'}
+    ]
 
     # weekday = ('Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön')[(datetime.datetime.now().weekday() - 1) % 6]
 
