@@ -71,7 +71,7 @@ def download_svt_video(url, link_text, output_directory):
     logger.info(f"Download {url} {link_text}")
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
 
-    for link in soup.findAll('a', {'aria-label': link_text}):
+    for link in soup.find_all('a', href=lambda href: href and link_text in href):
         link_href = parse_qs(urlparse(link['href']).query)
         if 'id' not in link_href:
             continue
@@ -80,7 +80,7 @@ def download_svt_video(url, link_text, output_directory):
         r = requests.get(f'https://api.svt.se/video/{modal_id}').json()
 
         video_info = {'program_title': r['programTitle'],
-                      'episode_title': r['episodeTitle']}
+                      'episode_title': r['episodeTitle'].replace(':', '-')}
 
         for video in r['videoReferences']:
             if video['format'] == 'hls':
@@ -95,7 +95,7 @@ def download_svt_video(url, link_text, output_directory):
 
 
 if __name__ == '__main__':
-    output_directory = "F:/svt"
+    output_directory = "D:/Svt"
     try:
         os.makedirs(output_directory)
     except FileExistsError:
@@ -123,8 +123,8 @@ if __name__ == '__main__':
     logger.info('Start')
 
     videos = [
-        {'url': 'https://svtplay.se/rapport', 'link_text': 'Spela Igår 19:30'},
-        {'url': 'https://svtplay.se/aktuellt', 'link_text': 'Spela Igår 21:00'}
+        {'url': 'https://svtplay.se/rapport', 'link_text': 'rapport/igar-19-30'},
+        {'url': 'https://svtplay.se/aktuellt', 'link_text': 'aktuellt/igar-21-00'}
     ]
 
     # weekday = ('Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön')[(datetime.datetime.now().weekday() - 1) % 6]
@@ -134,5 +134,5 @@ if __name__ == '__main__':
             download_svt_video(url=video['url'], link_text=video['link_text'], output_directory=output_directory)
         except VideoNotFound:
             logger.error(f"Video not found")
-        #except:
-        #    logger.error(f"Unexpected error {sys.exc_info()[0]}")
+        except:
+            logger.error(f"Unexpected error {sys.exc_info()[0]}")
