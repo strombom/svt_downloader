@@ -4,6 +4,7 @@ import sys
 import logging
 import requests
 import subprocess
+from datetime import datetime
 from bs4 import BeautifulSoup
 # from datetime import datetime
 from urllib.parse import urlparse, parse_qs
@@ -47,7 +48,8 @@ def get_media_types(video_url):
 
 
 def download(stream_base_url, media_types, video_info, output_directory):
-    output_filename = f"{output_directory}/{video_info['program_title']}"
+    current_year = datetime.datetime.now().year
+    output_filename = f"{output_directory}/{video_info['program_title']} {current_year}"
     try:
         os.makedirs(output_filename)
     except FileExistsError:
