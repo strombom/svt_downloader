@@ -48,7 +48,7 @@ def get_media_types(video_url):
 
 
 def download(stream_base_url, media_types, video_info, output_directory):
-    current_year = datetime.datetime.now().year
+    current_year = datetime.now().year
     output_filename = f"{output_directory}/{video_info['program_title']} {current_year}"
     try:
         os.makedirs(output_filename)
