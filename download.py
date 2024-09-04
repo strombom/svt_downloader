@@ -75,12 +75,13 @@ def download_svt_video(url, link_text, output_directory):
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
 
     for link in soup.find_all('a', href=lambda href: href and link_text in href):
-        link_href = parse_qs(urlparse(link['href']).query)
-        if 'id' not in link_href:
+        link_href = link['href']
+        if '/video/' not in link_href:
             continue
 
-        modal_id = link_href['id'][0]
-        r = requests.get(f'https://api.svt.se/video/{modal_id}').json()
+        video_id = link_href.split("/")[2]
+
+        r = requests.get(f'https://api.svt.se/video/{video_id}').json()
 
         video_info = {'program_title': r['programTitle'],
                       'episode_title': r['episodeTitle'].replace(':', '-')}
